@@ -35,5 +35,23 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/472-cicd:latest
           build-args: |
-            NEXT_PUBLIC_STUDENT_ID=6510405571
+            APP_ENV=production
+            APP_DEBUG=false
+            DB_CONNECTION=mysql
+            DB_HOST=mysql
+            DB_PORT=3306
+            DB_DATABASE=financial_planner
+            DB_USERNAME=root
+            DB_PASSWORD=root
+            REDIS_HOST=redis
+            REDIS_PASSWORD=null
+            REDIS_PORT=6379
+            MAIL_MAILER=smtp
+            MAIL_HOST=smtp.mailtrap.io
+            MAIL_PORT=2525
+            MAIL_USERNAME=null
+            MAIL_PASSWORD=null
+            MAIL_ENCRYPTION=null
+            MAIL_FROM_ADDRESS="hello@example.com"
+            MAIL_FROM_NAME="${APP_NAME}" 
             
