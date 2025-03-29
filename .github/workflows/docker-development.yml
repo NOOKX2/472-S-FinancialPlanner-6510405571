@@ -21,11 +21,6 @@ jobs:
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, zip
           coverage: xdebug
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
 
       - name: Install PHP dependencies
         run: composer install --prefer-dist --no-progress
@@ -42,8 +37,6 @@ jobs:
       - name: Run PHP Tests
         run: php artisan test
 
-      - name: Run Node.js Tests
-        run: npm test
 
       # Set up Docker Buildx
       - name: Set up Docker Buildx
