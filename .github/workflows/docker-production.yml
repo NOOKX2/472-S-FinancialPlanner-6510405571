@@ -1,71 +1,48 @@
-name: Main CI/CD - Build, Push, and Release
+name: Main CI/CD
 
 on:
   push:
-    branches: [ main ] # ทำงานเมื่อมีการ Push เข้า main เท่านั้น
+    branches: [ main ]
 
 jobs:
-  build-push-release: # เปลี่ยนชื่อ job ให้สื่อความหมาย
+  build-and-push:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # จำเป็นสำหรับสร้าง Git tag และ GitHub Release
-      packages: write # จำเป็นสำหรับ Push Docker image
-
     steps:
-      # 1. Checkout Code
-      - name: Checkout code
-        uses: actions/checkout@v4 # อัปเดตเป็น v4
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # สำหรับ generate_release_notes
+          fetch-depth: 0
 
-      # 2. Set up Docker Buildx
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3 # อัปเดตเป็น v3
-
-      # 3. Log in to Docker Hub
+        uses: docker/setup-buildx-action@v2
+        
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3 # อัปเดตเป็น v3
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }} # หรือ DOCKER_TOKEN
-
-      # 4. Generate Version Tag (ปี.เดือน.วัน-ShortCommitSHA)
-      - name: Generate version tag
-        id: version # ตั้ง ID ให้ Step นี้
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          
+      - name: Generate version
+        id: version
         run: |
-          # สร้าง Tag รูปแบบ YYYY.MM.DD-shortSHA
-          VERSION_TAG=$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)
-          echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT # ส่ง Output ชื่อ version_tag
-          echo "Generated Version Tag: ${VERSION_TAG}" # แสดงใน Log
-
-      # 5. Build and Push Docker Image
+          VERSION=$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6 # อัปเดตเป็น v6 (ล่าสุด)
+        uses: docker/build-push-action@v4
         with:
           context: .
-          # *** สำคัญมาก: ถ้า Dockerfile ไม่ได้ชื่อ 'Dockerfile' หรือไม่ได้อยู่ที่ Root ***
-          # --- เอา Comment ออก และแก้ไข Path ด้านล่างให้ถูกต้อง ---
-          # file: ./.docker/prod.Dockerfile # <--- ตรวจสอบ Path นี้ให้ดี!
-          # ------------------------------------------------------
           push: true
-          # platforms: linux/amd64,linux/arm64 # เอา Comment ออกถ้าต้องการ Multi-platform
-          # --- กำหนด Tags ให้ชัดเจน ใช้ Format ที่ถูกต้อง ---
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/financial-planner:${{ steps.version.outputs.version_tag }}
             ${{ secrets.DOCKER_USERNAME }}/financial-planner:latest
-          # -------------------------------------------------
+            ${{ secrets.DOCKER_USERNAME }}/financial-planner:${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      # 6. Create GitHub Release
+          
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # ใช้ Token อัตโนมัติ
         with:
-          # สร้าง Git Tag เป็น v<version_tag>
-          tag_name: v${{ steps.version.outputs.version_tag }}
-          name: Release v${{ steps.version.outputs.version_tag }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
           draft: false
           prerelease: false
-          generate_release_notes: true # สร้าง Release Notes อัตโนมัติ
+          generate_release_notes: true 
