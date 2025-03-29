@@ -46,11 +46,13 @@ jobs:
       - name: Build Docker image with BuildX
         uses: docker/build-push-action@v5
         with:
-          context: 
-          file: docker/prod.Dockerfile
+          context: .
+          # --- เพิ่มบรรทัดนี้เพื่อระบุตำแหน่ง Dockerfile ---
+          file: ./.docker/prod.Dockerfile
+          # ------------------------------------------------
           push: false
-          platforms: linux/amd64,linux/arm64
-          tags: 472-g-financial-planner:develop
+          platforms: linux/amd64,linux/arm64 # (ถ้าไม่ต้องการ Multi-platform เอาบรรทัดนี้ออกได้)
+          tags: 472-g-financial-planner:develop # ชื่อ tag สำหรับอ้างอิง (ไม่มีผลเพราะ push: false)
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -72,4 +74,4 @@ jobs:
             MAIL_PASSWORD=null
             MAIL_ENCRYPTION=null
             MAIL_FROM_ADDRESS="hello@example.com"
-            MAIL_FROM_NAME="${APP_NAME}" 
+            MAIL_FROM_NAME="${APP_NAME}"
