@@ -53,6 +53,6 @@ jobs:
                 uses: docker/build-push-action@v6
                 with:
                   context: .
-                  file: .docker/prod.Dockerfile
+                  file: docker/prod.Dockerfile
                   push: false
                   tags: my-app:pr-${{ github.event.pull_request.number }}
